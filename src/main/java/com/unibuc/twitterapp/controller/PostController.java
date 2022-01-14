@@ -1,9 +1,6 @@
 package com.unibuc.twitterapp.controller;
 
-import com.unibuc.twitterapp.pojo.dto.MentionDto;
-import com.unibuc.twitterapp.pojo.dto.PostDto;
-import com.unibuc.twitterapp.pojo.dto.FeedPostDto;
-import com.unibuc.twitterapp.pojo.dto.UserDto;
+import com.unibuc.twitterapp.pojo.dto.*;
 import com.unibuc.twitterapp.pojo.payload.PostRequest;
 import com.unibuc.twitterapp.pojo.payload.ReplyRequest;
 import com.unibuc.twitterapp.service.LikeService;
@@ -70,6 +67,12 @@ public class PostController {
     public void addPostReply(@Valid @RequestBody ReplyRequest replyRequest) {
         log.info("Attempting to add reply to post with postId: {}, message: {}", replyRequest.getPostId() ,replyRequest.getMessage());
         replyService.addReplyToPost(replyRequest);
+    }
+
+    @GetMapping("/{postId}/replies")
+    public List<ReplyDto> addPostReply(@NotEmpty @PathVariable(value ="postId") String postId) {
+        log.info("Get all replies from post with ID: {}", postId);
+        return replyService.getPostReplies(Long.parseLong(postId));
     }
 
     @PostMapping("/{postId}/like")
