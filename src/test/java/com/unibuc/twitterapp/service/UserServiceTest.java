@@ -1,14 +1,11 @@
 package com.unibuc.twitterapp.service;
 
-import com.unibuc.twitterapp.persistence.entity.User;
 import com.unibuc.twitterapp.persistence.repository.TokenRepository;
 import com.unibuc.twitterapp.persistence.repository.UserRepository;
 import com.unibuc.twitterapp.pojo.payload.UserRegistrationRequest;
 import com.unibuc.twitterapp.service.exception.AlreadyExistsException;
 import com.unibuc.twitterapp.service.exception.InvalidCredentialsException;
 import com.unibuc.twitterapp.service.exception.UserNotFoundException;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,18 +13,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -40,39 +31,6 @@ class UserServiceTest {
     private TokenRepository tokenRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
-
-
-
-
-    @BeforeEach
-    void setUp() {
-    }
-
-    @Test
-    void searchUser_whenUsersFound_thenReturnUsers() {
-         //when
-        when(userRepository.findByFirstNameOrLastNameOrMail(any(),any(),any())).thenReturn(Collections.singletonList(new User()));
-
-        //given
-        var result = userService.searchUser("","","");
-
-        //then
-        Assertions.assertThat(result).isNotEmpty().hasSize(1);
-
-    }
-
-    @Test
-    void searchUser_whenUsersNotFound_thenReturnEmptyList() {
-        //when
-        when(userRepository.findByFirstNameOrLastNameOrMail(any(),any(),any())).thenReturn(Collections.emptyList());
-
-        //given
-        var result = userService.searchUser("","","");
-
-        //then
-        Assertions.assertThat(result).isEmpty();
-
-    }
 
     @Test
     void registerUser_whenMailNotFound_thenSaveUser() {
