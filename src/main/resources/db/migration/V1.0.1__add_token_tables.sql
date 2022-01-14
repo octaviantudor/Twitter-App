@@ -1,0 +1,6 @@
+CREATE TABLE if NOT EXISTS tokens(
+    id BIGINT(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    token VARCHAR(120),
+    mail VARCHAR(60),
+    expiration_date TIMESTAMP
+)
