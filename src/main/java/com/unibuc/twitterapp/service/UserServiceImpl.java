@@ -1,6 +1,5 @@
 package com.unibuc.twitterapp.service;
 
-import com.unibuc.twitterapp.config.UserContextHolder;
 import com.unibuc.twitterapp.persistence.entity.Token;
 import com.unibuc.twitterapp.persistence.entity.User;
 import com.unibuc.twitterapp.persistence.repository.TokenRepository;
@@ -18,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,33 +25,38 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserContextHolder userContextHolder;
+    private final AuthHelperImpl authHelper;
+    private final UserConverter userConverter;
 
 
-    public List<UserDto> searchUser(String firstName, String lastName, String mail) {
+    @Transactional
+    public List<UserDto> searchUser(String firstName, String lastName, String mail, String username) {
         return StringUtils.isNotEmpty(firstName) ||
                 StringUtils.isNotEmpty(lastName) ||
-                StringUtils.isNotEmpty(mail) ?
-                userRepository.findByFirstNameOrLastNameOrMail(firstName, lastName, mail).stream()
-                        .map(UserConverter::fromEntityToDto)
+                StringUtils.isNotEmpty(mail) ||
+                StringUtils.isNotEmpty(username) ?
+                userRepository.findByFirstNameOrLastNameOrMailOrUsername(firstName, lastName, mail, username).stream()
+                        .map(userConverter::fromEntityToDto)
                         .collect(Collectors.toList()) :
                 userRepository.findAll().stream()
-                        .map(UserConverter::fromEntityToDto)
+                        .map(userConverter::fromEntityToDto)
                         .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional
     public void registerUser(UserRegistrationRequest userRegistrationRequest) {
 
         if (userRepository.findUserByMail(userRegistrationRequest.getMail()).isPresent())
             throw new AlreadyExistsException("User with this email already exists !");
 
-        User user = UserConverter.fromRequestToEntity(userRegistrationRequest);
+        User user = userConverter.fromRequestToEntity(userRegistrationRequest);
         user.setPassword(passwordEncoder.encode(userRegistrationRequest.getPassword()));
 
         userRepository.save(user);
@@ -59,6 +64,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public String loginUser(LoginRequest loginRequest) {
 
         var user = userRepository.findUserByMail(loginRequest.getMail());
@@ -77,8 +83,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void unregisterUser() {
-        userRepository.deleteById(userContextHolder.getUser().getId());
+        var loggedUser = userRepository.findByUsername(authHelper.getUserDetails().getUsername())
+                .orElseThrow(() -> new UserNotFoundException("User not found with username"));
+
+        userRepository.deleteById(loggedUser.getId());
+    }
+
+    @Override
+    public List<UserDto> findAll() {
+
+        return userRepository.findAll().stream().map(userConverter::fromEntityToDto).collect(Collectors.toList());
+
     }
 
 }

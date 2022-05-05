@@ -1,28 +1,24 @@
 package com.unibuc.twitterapp.controller;
 
-import com.unibuc.twitterapp.pojo.dto.*;
-import com.unibuc.twitterapp.pojo.payload.PostRequest;
-import com.unibuc.twitterapp.pojo.payload.ReplyRequest;
+import com.unibuc.twitterapp.pojo.dto.FeedPostDto;
+import com.unibuc.twitterapp.pojo.dto.MentionDto;
+import com.unibuc.twitterapp.pojo.dto.PostDto;
 import com.unibuc.twitterapp.service.LikeService;
 import com.unibuc.twitterapp.service.MentionService;
 import com.unibuc.twitterapp.service.PostService;
 import com.unibuc.twitterapp.service.ReplyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/posts")
@@ -36,12 +32,14 @@ public class PostController {
     private final MentionService mentionService;
 
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public void addPost(@Valid @RequestBody PostRequest postRequest,
-                        @PathVariable(value = "mentionIds", required = false) List<String> mentionIds) {
-        log.info("Add post request with message: {}", postRequest.getMessage());
-        postService.addPost(postRequest, mentionIds);
+    @PostMapping("/add")
+    public ModelAndView addPost(@Valid @RequestParam(value = "post_message", required = false) String message,
+                                @PathVariable(value = "mentionIds", required = false) List<String> mentionIds) {
+        log.info("Add post request with message: {}", message);
+        ModelAndView modelAndView = new ModelAndView("redirect:/posts/feed");
+        if (!StringUtils.isEmpty(message))
+            postService.addPost(message, mentionIds);
+        return modelAndView;
     }
 
     @GetMapping()
@@ -51,40 +49,56 @@ public class PostController {
     }
 
     @GetMapping("/feed")
-    public List<FeedPostDto> getPostFeed(@RequestParam(value = "pageNr", defaultValue = "0") String pageNr,
-                                         @RequestParam(value = "pageSize", defaultValue = "20") String pageSize) {
+    public ModelAndView getPostFeed(@RequestParam(value = "page", defaultValue = "0") String pageNr,
+                                    @RequestParam(value="sort", required = false) Optional<String> sort) {
+        String pageSize = "5";
         log.info("Getting post feed with pageNr: {} and pageSize: {}", pageNr, pageSize);
-        return postService.getPostFeed(Integer.parseInt(pageNr), Integer.parseInt(pageSize));
+        ModelAndView modelAndView = new ModelAndView("feed");
+        Page<FeedPostDto> feedPostDtos = postService.getPostFeed(Integer.parseInt(pageNr), Integer.parseInt(pageSize), sort);
+
+        modelAndView.addObject("posts", feedPostDtos);
+
+        return modelAndView;
     }
 
-    @DeleteMapping("/{postId}")
-    public void deletePost(@NotEmpty @PathVariable(value = "postId") String postId) {
+    @PostMapping("/delete/{postId}")
+    public ModelAndView deletePost(@NotEmpty @PathVariable(value = "postId") String postId) {
         log.info("Attempting to delete post with ID: {}", postId);
+        ModelAndView modelAndView = new ModelAndView("redirect:/posts/feed");
         postService.deletePost(Long.parseLong(postId));
+        return modelAndView;
     }
 
-    @PostMapping("/reply")
-    public void addPostReply(@Valid @RequestBody ReplyRequest replyRequest) {
-        log.info("Attempting to add reply to post with postId: {}, message: {}", replyRequest.getPostId() ,replyRequest.getMessage());
-        replyService.addReplyToPost(replyRequest);
+    @PostMapping("/{postId}/reply")
+    public ModelAndView addPostReply(@PathVariable(value = "postId") String postId, @RequestParam(value = "message") String message) {
+        log.info("Attempting to add reply to post with postId: {}, message: {}", postId, message);
+        ModelAndView modelAndView = new ModelAndView("redirect:/posts/" + postId + "/replies");
+        replyService.addReplyToPost(postId, message);
+        return modelAndView;
     }
 
     @GetMapping("/{postId}/replies")
-    public List<ReplyDto> addPostReply(@NotEmpty @PathVariable(value ="postId") String postId) {
+    public ModelAndView addPostReply(@NotEmpty @PathVariable(value = "postId") String postId) {
         log.info("Get all replies from post with ID: {}", postId);
-        return replyService.getPostReplies(Long.parseLong(postId));
+        ModelAndView modelAndView = new ModelAndView("replies");
+        modelAndView.addObject("replies", replyService.getPostReplies(Long.parseLong(postId)));
+        return modelAndView;
     }
 
     @PostMapping("/{postId}/like")
-    public void likePost(@NotEmpty @PathVariable(value ="postId") String postId) {
+    public ModelAndView likePost(@NotEmpty @PathVariable(value = "postId") String postId, @RequestParam(value = "page") String page) {
         log.info("Attempting to like post with ID: {}", postId);
+        ModelAndView modelAndView = new ModelAndView("redirect:/posts/feed?page=" + page);
         likeService.likePost(Long.parseLong(postId));
+        return modelAndView;
     }
 
     @GetMapping("/{postId}/likes")
-    public List<UserDto> getPostlikes(@NotEmpty @PathVariable(value ="postId") String postId) {
+    public ModelAndView getPostlikes(@NotEmpty @PathVariable(value = "postId") String postId) {
         log.info("Attempting to like post with ID: {}", postId);
-        return likeService.getPostLikes(Long.parseLong(postId));
+        ModelAndView modelAndView = new ModelAndView("likes_by_users");
+        modelAndView.addObject("users", likeService.getPostLikes(Long.parseLong(postId)));
+        return modelAndView;
     }
 
     @GetMapping("/mentions")
@@ -93,6 +107,27 @@ public class PostController {
         return mentionService.getMentions();
     }
 
+    @GetMapping(path = "/filter")
+    public ModelAndView filterPosts(@RequestParam("page") Optional<Integer> page,
+                                    @RequestParam("filter_username") String username,
+                                    @RequestParam("filter_message") String message) {
+
+        log.info("Attempting to filter posts by username: {} and message: {}", username, message);
+        ModelAndView modelAndView = new ModelAndView("redirect:/posts/feed");
+
+
+        if (StringUtils.isEmpty(username) && StringUtils.isEmpty(message)) {
+            return modelAndView;
+        }
+        modelAndView.setViewName("feed");
+
+        int currentPage = page.orElse(1);
+        int pageSize = 5;
+
+        Page<FeedPostDto> feedPage = postService.findPaginatedFiltered(PageRequest.of(currentPage - 1, pageSize), username, message);
+        modelAndView.addObject("posts", feedPage);
+        return modelAndView;
+    }
 
 
 }

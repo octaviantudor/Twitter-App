@@ -3,6 +3,7 @@ package com.unibuc.twitterapp.persistence.repository;
 import com.unibuc.twitterapp.persistence.entity.Post;
 import com.unibuc.twitterapp.persistence.entity.User;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,4 +16,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByUser(User user);
 
     List<Post> findByUserIn(List<User> userList, Pageable pageable);
+
+    List<Post> findByUserIn(List<User> userList, Sort sort);
+    List<Post> findByUserIn(List<User> userList);
+
 }

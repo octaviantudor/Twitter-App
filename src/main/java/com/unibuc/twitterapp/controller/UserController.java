@@ -1,6 +1,5 @@
 package com.unibuc.twitterapp.controller;
 
-import com.unibuc.twitterapp.pojo.dto.UserDto;
 import com.unibuc.twitterapp.pojo.payload.LoginRequest;
 import com.unibuc.twitterapp.pojo.payload.UserRegistrationRequest;
 import com.unibuc.twitterapp.service.FollowService;
@@ -10,11 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,13 +26,23 @@ public class UserController {
     private final FollowService followService;
 
     @GetMapping("/search")
-    public List<UserDto> findByFirstNameOrLastNameOrMail(@RequestParam(name = "firstName", required = false) String firstName,
+    public ModelAndView findByFirstNameOrLastNameOrMail(@RequestParam(name = "firstName", required = false) String firstName,
                                                          @RequestParam(name = "lastName", required = false) String lastName,
-                                                         @RequestParam(name = "mail", required = false) String mail) {
+                                                         @RequestParam(name = "mail", required = false) String mail,
+                                                        @RequestParam(name = "username", required = false) String username) {
         log.info("Search for users using first_name: {} or last_name: {} or mail: {}", firstName, lastName, mail);
-        return userService.searchUser(firstName, lastName, mail);
+        ModelAndView modelAndView = new ModelAndView("users");
+        modelAndView.addObject("users",userService.searchUser(firstName, lastName, mail, username) );
+        return modelAndView;
     }
 
+    @GetMapping("/all")
+    public ModelAndView getAllUsers(){
+        log.info("Search for all the users");
+        ModelAndView modelAndView = new ModelAndView("users");
+        modelAndView.addObject("users", userService.findAll());
+        return modelAndView;
+    }
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void registerUser(@Valid @RequestBody UserRegistrationRequest userRegistrationRequest) {
@@ -56,16 +65,20 @@ public class UserController {
         return ResponseEntity.ok(authHeader);
     }
 
-    @GetMapping("/{userId}/follow")
-    public void followUser(@NotEmpty @PathVariable(value = "userId") String userId){
+    @PostMapping("/{userId}/follow")
+    public ModelAndView followUser(@NotEmpty @PathVariable(value = "userId") String userId){
         log.info("Attempting to follow user with ID: {}", userId);
+        ModelAndView modelAndView = new ModelAndView("redirect:/users/all");
         followService.followUser(Long.valueOf(userId));
+        return modelAndView;
     }
 
-    @GetMapping("/{userId}/unfollow")
-    public void unfollowUser(@NotEmpty @PathVariable(value = "userId") String userId){
+    @PostMapping("/{userId}/unfollow")
+    public ModelAndView unfollowUser(@NotEmpty @PathVariable(value = "userId") String userId){
         log.info("Attempting to unfollow user with ID: {}", userId);
+        ModelAndView modelAndView = new ModelAndView("redirect:/users/all");
         followService.unfollowUser(Long.valueOf(userId));
+        return modelAndView;
     }
 
 }

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zboruri</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+    <script src="/webjars/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/webjars/bootstrap/4.5.0/css/bootstrap.min.css" />
+
+</head>
+<body>
+<div class="container">
+    <form th:action="@{/posts/filter}" method="get" enctype="multipart/form-data">
+        <input placeholder="Username to search" type="text" id="filter_username" name="filter_username" class="form-control">
+        <input placeholder="Words to search" type="text" id="filter_message" name="filter_message" class="form-control">
+        <button type="submit" id="filtrare">Filtreaza</button>
+    </form>
+    <table class="table table-hover ">
+        <thead class="thead-inverse">
+        <tr>
+            <th><a th:href="@{'/posts/feed?sort=username'}">Username</a></th>
+            <th>Message</th>
+            <th><a th:href="@{'/posts/feed?sort=timeStamp'}">Date</a></th>
+            <th><a th:href="@{'/posts/feed?sort=likes'}">Likes</a></th>
+            <th>Replies</th>
+            <th>Actions</th>
+
+
+        </tr>
+        </thead>
+        <tr th:each="post: ${posts}">
+
+            <td th:text="${post.username}"></td>
+            <td th:text="${post.message}"></td>
+            <td th:text="${post.timeStamp}" > </td>
+            <td>
+                <a href="#" th:href="@{'/posts/' + ${post.id} + '/likes'}">See likes</a>
+                <form th:action="@{'/posts/' + ${post.id} + '/like'(page=${posts.number})}" method="post" enctype="multipart/form-data">
+                    <button type="submit" class="btn btn-primary" th:if="${!post.currentUserLicked}" > Like</button>
+                    <button type="submit" class="btn btn-primary" th:if="${post.currentUserLicked}" > Dislike</button>
+                </form>
+
+            </td>
+
+            <td>
+                <a href="#" th:href="@{'/posts/' + ${post.id} + '/replies'}">See replies</a>
+                <form th:action="@{'/posts/' + ${post.id} + '/reply'}" method="post" enctype="multipart/form-data">
+                    <textarea id="message" name="message" placeholder="Reply"></textarea>
+                    <button type="submit" class="btn btn-primary" > Reply</button>
+                </form>
+            </td>
+
+            <td>
+                <form th:action="@{'/posts/delete/' + ${post.id}}" method="post" enctype="multipart/form-data">
+                    <button type="submit" class="btn btn-danger" th:if="${post.ownPost}" > Delete</button>
+                </form>
+            </td>
+        </tr>
+    </table>
+    <div th:if="${posts.totalPages > 0}" class="pagination" >
+        <a th:if="${posts.number > 0}" th:href="@{/posts/feed(page=${posts.number - 1})}">Previous</a>
+        <span th:unless="${posts.number >0}">Previous</span>
+    </div>
+    <div th:if="${posts.totalPages > 0}" class="pagination"  style="float: right">
+        <a th:if="${posts.number < posts.totalPages -1}"
+           th:href="@{/posts/feed(page=${posts.number+1})}">Next</a>
+        <span th:unless="${posts.number <
+posts.totalPages -1}">Next</span>
+    </div>
+
+</div>
+
+
+<form th:action="@{/posts/add}" method="post" enctype="multipart/form-data">
+    <textarea class="form-control" id="post_message" name="post_message" placeholder="WRITE A POST"></textarea>
+    <button type="submit" class="btn btn-primary" style="align-items: center">Add post</button>
+</form>
+
+
+
+
+<div class="container" style="margin-top: 50px">
+    <div class="row">
+        <div class="col-md-6">
+            <a class="btn btn-primary" role="button" th:href="@{'/follows/followers'}">Followers</a>
+            <a class="btn btn-primary" role="button" th:href="@{'/follows/following'}">Following</a>
+            <a class="btn btn-primary" role="button" th:href="@{'/users/all'}">Find people</a>
+            <a class="btn btn-primary" role="button" th:href="@{'/zbor/destinatie/new'}">See own posts</a>
+        </div>
+        <!--        <div class="col-md-6">
+                    <a class="btn btn-primary" role="button" th:href="@{'/participant/new'}">register</a>
+                </div>
+        -->
+    </div>
+</div>
+
+
+</body>
+</html>
+<script>
+    $(".datepicker").datepicker({
+        dateFormat:'yy-mm-dd',
+    });
+
+</script>

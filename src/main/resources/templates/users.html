@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pasageri</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="/webjars/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/webjars/bootstrap/4.5.0/css/bootstrap.min.css" />
+
+</head>
+<body>
+<div class="container">
+
+    <form th:action="@{/users/search}" method="get" enctype="multipart/form-data">
+        <input placeholder="FirstName to search" type="text" id="firstName" name="firstName" class="form-control">
+        <input placeholder="LastName to search" type="text" id="lastName" name="lastName" class="form-control">
+        <input placeholder="Email to search" type="text" id="mail" name="mail" class="form-control">
+        <input placeholder="Username to search" type="text" id="username" name="username" class="form-control">
+        <button type="submit" id="filtrare" class="btn btn-primary">Find People</button>
+    </form>
+
+    <table class="table table-hover ">
+        <thead class="thead-inverse">
+        <tr>
+            <th>Username</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <td>Follow</td>
+
+        </tr>
+        </thead>
+        <tr th:each="user: ${users}">
+            <td th:text="${user.username}"></td>
+            <td th:text="${user.firstName}"></td>
+            <td th:text="${user.lastName}"></td>
+            <td th:text="${user.mail}"></td>
+
+            <td >
+                <form th:action="@{'/users/' + ${user.id} + '/follow'}" th:if="${!user.isCurrentUser && !user.currentUserFollows}" method="post" enctype="multipart/form-data">
+                    <button type="submit" class="btn btn-primary"> Follow</button>
+                </form>
+
+                <form th:action="@{'/users/' + ${user.id} + '/unfollow'}" th:if="${!user.isCurrentUser && user.currentUserFollows}" method="post" enctype="multipart/form-data">
+                    <button type="submit" class="btn btn-primary"> Unfollow</button>
+                </form>
+            </td>
+
+        </tr>
+    </table>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <a class="btn btn-primary" role="button" th:href="@{'/posts/feed'}">See posts</a>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+</html>

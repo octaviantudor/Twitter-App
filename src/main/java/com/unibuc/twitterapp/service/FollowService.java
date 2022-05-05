@@ -1,7 +1,10 @@
 package com.unibuc.twitterapp.service;
 
+import com.unibuc.twitterapp.pojo.dto.UserDto;
 import com.unibuc.twitterapp.service.exception.InvalidUserRequestException;
 import com.unibuc.twitterapp.service.exception.UserNotFoundException;
+
+import java.util.List;
 
 public interface FollowService {
 
@@ -20,4 +23,8 @@ public interface FollowService {
      * @throws InvalidUserRequestException if the user does not follow the account with the provided userId.
      */
     void unfollowUser(Long userId);
+
+    List<UserDto> getUserFollowers();
+
+    List<UserDto> getUserFollowing();
 }

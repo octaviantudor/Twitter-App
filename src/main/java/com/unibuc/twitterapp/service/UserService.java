@@ -25,7 +25,7 @@ public interface UserService {
      * @param mail
      * @return list of users found
      */
-    List<UserDto> searchUser(String firstName, String lastName, String mail);
+    List<UserDto> searchUser(String firstName, String lastName, String mail, String username);
 
     /**
      * Log in of the current user by username and password, generates and stores a token for each user
@@ -38,4 +38,6 @@ public interface UserService {
 
 
     void unregisterUser();
+
+    List<UserDto> findAll();
 }

@@ -15,6 +15,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class FeedPostDto {
 
+    private String id;
+
+    private String username;
+
     private String firstName;
 
     private String lastName;
@@ -22,6 +26,10 @@ public class FeedPostDto {
     private String message;
 
     private LocalDateTime timeStamp;
+
+    private Boolean currentUserLicked;
+
+    private Boolean ownPost;
 
 
 }

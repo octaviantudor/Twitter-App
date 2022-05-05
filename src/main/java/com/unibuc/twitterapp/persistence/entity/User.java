@@ -1,21 +1,11 @@
 package com.unibuc.twitterapp.persistence.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import java.util.List;
+import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Builder
@@ -23,13 +13,17 @@ import java.util.List;
 @AllArgsConstructor
 @SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id = ?")
 @Where(clause = "is_deleted=false")
-@Data
+@Getter
+@Setter
 @Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "username")
+    private String username;
 
     @Column(name = "first_name")
     private String firstName;
@@ -44,19 +38,41 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy="to", cascade = CascadeType.ALL)
-    private List<Follow> followers;
+    private Set<Follow> followers;
 
     @OneToMany(mappedBy="from", cascade = CascadeType.ALL)
-    private List<Follow> following;
+    private Set<Follow> following;
 
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
-    private List<Post> posts;
+    private Set<Post> posts;
 
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
-    private List<Reply> replies;
+    private Set<Reply> replies;
+
+    @Singular
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @JoinTable(name = "user_authority", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name="authority_id", referencedColumnName = "id"))
+    private Set<Authority> authorities;
 
     @Column(name= "is_deleted")
     @Builder.Default
     private Boolean deleted = Boolean.FALSE;
+
+    @Column(name= "enabled")
+    @Builder.Default
+    private Boolean enabled = true;
+
+    @Column(name= "account_not_expired")
+    @Builder.Default
+    private Boolean accountNotExpired = true;
+
+    @Column(name= "account_not_locked")
+    @Builder.Default
+    private Boolean accountNotLocked = true;
+
+    @Column(name= "credentials_not_expired")
+    @Builder.Default
+    private Boolean credentialsNotExpired = true;
 
 }
