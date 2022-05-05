@@ -21,7 +21,7 @@ public class ReplyServiceImpl implements ReplyService {
     private final PostRepository postRepository;
     private final ReplyRepository replyRepository;
     private final UserRepository userRepository;
-    private final AuthHelperImpl authHelper;
+    private final AuthHelper authHelper;
     private final ReplyConverter replyConverter;
 
     @Override

@@ -43,4 +43,8 @@ public interface PostService {
     void deletePost(long postId);
 
     Page<FeedPostDto> findPaginatedFiltered(Pageable pageable, String username, String message);
+
+    FeedPostDto getPost(String postId);
+
+    void updatePost(String postId, String message);
 }

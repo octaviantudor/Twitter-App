@@ -50,7 +50,7 @@ public class PostController {
 
     @GetMapping("/feed")
     public ModelAndView getPostFeed(@RequestParam(value = "page", defaultValue = "0") String pageNr,
-                                    @RequestParam(value="sort", required = false) Optional<String> sort) {
+                                    @RequestParam(value = "sort", required = false) Optional<String> sort) {
         String pageSize = "5";
         log.info("Getting post feed with pageNr: {} and pageSize: {}", pageNr, pageSize);
         ModelAndView modelAndView = new ModelAndView("feed");
@@ -107,6 +107,21 @@ public class PostController {
         return mentionService.getMentions();
     }
 
+    @GetMapping("/{postId}")
+    public ModelAndView getPost(@PathVariable(value = "postId") String postId) {
+        log.info("Attempting to get post with id: {}", postId);
+        ModelAndView modelAndView = new ModelAndView("post");
+        modelAndView.addObject("post", postService.getPost(postId));
+        return modelAndView;
+    }
+
+    @PostMapping("/{postId}/update")
+    public ModelAndView updatePost(@PathVariable(value = "postId") String postId, @RequestParam(value = "message") String message) {
+        log.info("Attempting to get post with id: {}", postId);
+        ModelAndView modelAndView = new ModelAndView("redirect:/posts/feed");
+        postService.updatePost(postId, message);
+        return modelAndView;
+    }
     @GetMapping(path = "/filter")
     public ModelAndView filterPosts(@RequestParam("page") Optional<Integer> page,
                                     @RequestParam("filter_username") String username,

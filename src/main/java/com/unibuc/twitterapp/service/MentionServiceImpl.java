@@ -19,7 +19,7 @@ public class MentionServiceImpl implements MentionService {
 
     private final MentionRepository mentionRepository;
     private final UserRepository userRepository;
-    private final AuthHelperImpl authHelper;
+    private final AuthHelper authHelper;
 
     @Override
     @Transactional

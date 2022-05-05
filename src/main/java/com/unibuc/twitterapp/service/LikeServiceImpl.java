@@ -24,7 +24,7 @@ public class LikeServiceImpl implements LikeService {
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
     private final UserRepository userRepository;
-    private final AuthHelperImpl authHelper;
+    private final AuthHelper authHelper;
     private final UserConverter userConverter;
 
     @Override

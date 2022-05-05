@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FollowServiceImpl implements FollowService{
 
-    private final AuthHelperImpl authHelper;
+    private final AuthHelper authHelper;
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
     private final UserConverter userConverter;

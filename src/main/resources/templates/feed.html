@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zboruri</title>
+    <title>Twitter</title>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
@@ -55,6 +55,10 @@
             <td>
                 <form th:action="@{'/posts/delete/' + ${post.id}}" method="post" enctype="multipart/form-data">
                     <button type="submit" class="btn btn-danger" th:if="${post.ownPost}" > Delete</button>
+                </form>
+
+                <form th:action="@{'/posts/' + ${post.id}}" method="get" enctype="multipart/form-data">
+                    <button type="submit" class="btn btn-primary" th:if="${post.ownPost}" > Edit</button>
                 </form>
             </td>
         </tr>

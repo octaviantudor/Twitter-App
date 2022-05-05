@@ -7,4 +7,5 @@ public interface AuthHelper {
     Authentication getAuthentication();
     String getName();
     UserDetails getUserDetails();
+
 }

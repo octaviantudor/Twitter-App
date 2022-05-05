@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,7 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final MentionRepository mentionRepository;
     private final FollowRepository followRepository;
-    private final AuthHelperImpl authHelper;
+    private final AuthHelper authHelper;
     private final PostConverter postConverter;
 
     @Override
@@ -77,7 +78,6 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with username"));
 
 
-
         List<User> userList = followRepository.findByFrom(loggedUser).stream()
                 .map(Follow::getTo).collect(Collectors.toList());
 
@@ -85,12 +85,11 @@ public class PostServiceImpl implements PostService {
 
         List<FeedPostDto> feedPostDtos;
 
-        if (sortColumn.equals("username")){
+        if (sortColumn.equals("username")) {
             feedPostDtos = postRepository.findByUserIn(userList, Sort.by(Sort.Direction.DESC, "user")).stream()
                     .map(p -> postConverter.fromEntityToPost(p, p.getUser()))
                     .collect(Collectors.toList());
-        }
-        else {
+        } else {
             feedPostDtos = postRepository.findByUserIn(userList, Sort.by(Sort.Direction.DESC, sortColumn)).stream()
                     .map(p -> postConverter.fromEntityToPost(p, p.getUser()))
                     .collect(Collectors.toList());
@@ -119,7 +118,7 @@ public class PostServiceImpl implements PostService {
 
         Optional<Post> optionalPost = postRepository.findById(Long.valueOf(postId));
 
-        if (optionalPost.isPresent()){
+        if (optionalPost.isPresent()) {
             var list = optionalPost.get().getLikes().stream().map(Like::getUser).collect(Collectors.toList());
             return list.contains(loggedUser) ? Boolean.TRUE : Boolean.FALSE;
         }
@@ -146,7 +145,7 @@ public class PostServiceImpl implements PostService {
                 .map(Follow::getTo).collect(Collectors.toList());
         userList.add(loggedUser);
 
-        var feedPostDtos =  postRepository.findByUserIn(userList).stream()
+        var feedPostDtos = postRepository.findByUserIn(userList).stream()
                 .filter(post -> post.getUser().getUsername().contains(username) &&
                         post.getMessage().contains(message))
                 .map(post -> postConverter.fromEntityToPost(post, post.getUser()))
@@ -166,6 +165,31 @@ public class PostServiceImpl implements PostService {
         //list = list.stream().sorted(Comparator.comparing(FeedPostDto::getTimeStamp)).collect(Collectors.toList());
         return new PageImpl<>(list, PageRequest.of(currentPage,
                 pageSize), feedPostDtos.size());
+
+    }
+
+    @Override
+    public FeedPostDto getPost(String postId) {
+
+        return postRepository.findById(Long.valueOf(postId))
+                .map(post -> postConverter.fromEntityToPost(post, post.getUser()))
+                .orElse(new FeedPostDto());
+
+    }
+
+    @Override
+    public void updatePost(String postId, String message) {
+        var optionalPost = postRepository.findById(Long.valueOf(postId));
+
+        if (optionalPost.isEmpty())
+            throw new PostNotFoundException("Post with this ID doesn't exists !");
+
+        var post = optionalPost.get();
+
+        post.setMessage(message);
+        post.setTimeStamp(LocalDateTime.now());
+
+        postRepository.save(post);
 
     }
 
